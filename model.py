@@ -290,11 +290,11 @@ class PointNetFeaturePropagation(nn.Module):
 class GACNet(nn.Module):
     def __init__(self, num_classes,droupout=0,alpha=0.2):
         super(GACNet, self).__init__()
-        # GraphAttentionConvLayer: npoint, radius, nsample, in_channel, mlp, group_all,droupout,alpha
-        self.sa1 = GraphAttentionConvLayer(1024, 0.1, 32, 6 + 3, [32, 32, 64], False, droupout,alpha)
-        self.sa2 = GraphAttentionConvLayer(256, 0.2, 32, 64 + 3, [64, 64, 128], False, droupout,alpha)
-        self.sa3 = GraphAttentionConvLayer(64, 0.4, 32, 128 + 3, [128, 128, 256], False, droupout,alpha)
-        self.sa4 = GraphAttentionConvLayer(16, 0.8, 32, 256 + 3, [256, 256, 512], False, droupout,alpha)
+        # GraphAttentionConvLayer:        npoint, radius, nsample, in_channel, mlp,             group_all,  droupout,   alpha
+        self.sa1 = GraphAttentionConvLayer(1024 ,   0.1 ,   32  ,   6 + 3   , [32, 32, 64]      , False,    droupout,   alpha)
+        self.sa2 = GraphAttentionConvLayer(256  ,   0.2 ,   32  ,   64 + 3  , [64, 64, 128]     , False,    droupout,   alpha)
+        self.sa3 = GraphAttentionConvLayer(64   ,   0.4 ,   32  ,   128 + 3 , [128, 128, 256]   , False,    droupout,   alpha)
+        self.sa4 = GraphAttentionConvLayer(16   ,   0.8 ,   32  ,   256 + 3 , [256, 256, 512]   , False,    droupout,   alpha)
         # PointNetFeaturePropagation: in_channel, mlp
         self.fp4 = PointNetFeaturePropagation(768, [256, 256])
         self.fp3 = PointNetFeaturePropagation(384, [256, 256])
