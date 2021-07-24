@@ -64,22 +64,34 @@ def farthest_point_sample(xyz, npoint):
     print('farthest_point_sample begin')
     device = xyz.device
     B, N, C = xyz.shape
+    print('xyz.shape is')
     print(xyz.shape)
     # centroids = torch.zeros(B, npoint) = torch.zeros(24, 1024) 
     centroids = torch.zeros(B, npoint, dtype=torch.long).to(device)
+    print('centroids.shape is')
     print(centroids.shape)
     # distance = torch.ones(B, N) = torch.zeros(24, 4096)
-    # And why * 1e10 
+    # And why * 1e10 ????
     distance = torch.ones(B, N).to(device) * 1e10
+    print('distance.shape is')
     print(distance.shape)
     # farthest = torch.randint(0, N, B)
     farthest = torch.randint(0, N, (B,), dtype=torch.long).to(device)
+    print('farthest.shape is')
     print(farthest.shape)
     batch_indices = torch.arange(B, dtype=torch.long).to(device)
+    print('batch_indices.shape is')
     print(batch_indices.shape)
+    print('npoint is ')
+    print(npoint) 
+    print('\n') 
     for i in range(npoint):
         centroids[:, i] = farthest
         centroid = xyz[batch_indices, farthest, :].view(B, 1, 3)
+        if i == 2:
+            print('centroid.shape is')
+            # torch.Size([24, 1, 3])
+            print(centroid.shape)
         dist = torch.sum((xyz - centroid) ** 2, -1)
         mask = dist < distance
         distance[mask] = dist[mask]
@@ -122,17 +134,21 @@ def sample_and_group(npoint, radius, nsample, xyz, points, returnfps=False):
         new_points: sampled points data, [B, 1, N, C+D]
     """
     # this function
-    print(xyz.shape)
-    print(points.shape)
+    print('in this function, sample_and_group')
+    print('xyz.shape is',xyz.shape)
+    print('points.shape is',points.shape)
     # 1024
     # 0.1
     # 32 
-    print(npoint)
-    print(radius)
-    print(nsample)
+    print('npoint',npoint)
+    print('radius',radius)
+    print('nsample',nsample)
     B, N, C = xyz.shape
     S = npoint
     fps_idx = farthest_point_sample(xyz, npoint) # [B, npoint, C]
+    print('fps_idx is',fps_idx.shape)
+    print(fps_idx)
+    print('\n')
     new_xyz = index_points(xyz, fps_idx)
     idx = query_ball_point(radius, nsample, xyz, new_xyz)
     grouped_xyz = index_points(xyz, idx) # [B, npoint, nsample, C]
@@ -242,11 +258,20 @@ class GraphAttentionConvLayer(nn.Module):
         else:
             # choose this option
             new_xyz, new_points, grouped_xyz, fps_points = sample_and_group(self.npoint, self.radius, self.nsample, xyz, points, True)
+            print('after sample_and_group')
+            print('new_xyz is ',new_xyz)
+            print('new_points is ',new_points)
+            print('grouped_xyz is ',grouped_xyz)
+            print('fps_points is ',fps_points)
         # new_xyz: sampled points position data, [B, npoint, C]
         # new_points: sampled points data, [B, npoint, nsample, C+D]
         # fps_points: [B, npoint, C+D,1]
         new_points = new_points.permute(0, 3, 2, 1) # [B, C+D, nsample,npoint]
+        print('shape of new_points is ',new_points.shape)
+        print('shape of fps_points is ',fps_points.shape)
         fps_points = fps_points.unsqueeze(3).permute(0, 2, 3, 1) # [B, C+D, 1,npoint]
+        print('shape of fps_points is ',fps_points.shape)
+        print('self.mlp_convs is', self.mlp_convs)
         for i, conv in enumerate(self.mlp_convs):
             bn = self.mlp_bns[i]
             fps_points = F.relu(bn(conv(fps_points)))
@@ -257,8 +282,11 @@ class GraphAttentionConvLayer(nn.Module):
                               center_feature=fps_points.squeeze().permute(0,2,1),
                               grouped_xyz=grouped_xyz,
                               grouped_feature=new_points.permute(0,3,2,1))
+        print('shape of new_points is ',new_points.shape)
         new_xyz = new_xyz.permute(0, 2, 1)
+        print('shape of new_xyz is ',new_xyz.shape)
         new_points = new_points.permute(0, 2, 1)
+        print('shape of new_points is ',new_points.shape)
         return new_xyz, new_points
 
 class PointNetFeaturePropagation(nn.Module):
@@ -338,15 +366,33 @@ class GACNet(nn.Module):
         # Here, self.sa1 is GraphAttentionConvLayer
         # points[:,:3,:],points[:,3:,:] is fed into GraphAttentionConvLayer function
         print('in GACNet, you will get xyz and point')
-        print(xyz.shape)
-        print(point.shape)
-        print(xyz)
-        print(point)        
+        print('xyz.shape and point.shape are')
+        print('xyz.shape is',xyz.shape)
+        print('point.shape is ',point.shape)
+        print('xyz is',xyz)
+        print('point is',point)        
         l1_xyz, l1_points = self.sa1(xyz, point)
+        print('l1_xyz.shape is',l1_xyz.shape)
+        print('l1_point.shape is ',l1_points.shape)
+        print('l1_xyz is',l1_xyz)
+        print('l1_point is',l1_points)        
         l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
+        print('l2_xyz.shape is',l2_xyz.shape)
+        print('l2_point.shape is ',l2_points.shape)
+        print('l2_xyz is',l2_xyz)
+        print('l2_point is',l2_points)           
         l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)
+        print('l3_xyz.shape is',l3_xyz.shape)
+        print('l3_point.shape is ',l3_points.shape)
+        print('l3_xyz is',l3_xyz)
+        print('l3_point is',l3_points)           
         l4_xyz, l4_points = self.sa4(l3_xyz, l3_points)
+        print('l4_xyz.shape is',l4_xyz.shape)
+        print('l4_point.shape is ',l4_points.shape)
+        print('l4_xyz is',l4_xyz)
+        print('l4_point is',l4_points)   
 
+        # this is upsampleing
         l3_points = self.fp4(l3_xyz, l4_xyz, l3_points, l4_points)
         l2_points = self.fp3(l2_xyz, l3_xyz, l2_points, l3_points)
         l1_points = self.fp2(l1_xyz, l2_xyz, l1_points, l2_points)
