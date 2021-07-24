@@ -26,7 +26,7 @@ def parse_args():
     parser = argparse.ArgumentParser('GACNet')
     parser.add_argument('--batchSize', type=int, default=24, help='input batch size [default: 24]')
     parser.add_argument('--workers', type=int, default=4, help='number of data loading workers [default: 4]')
-    parser.add_argument('--epoch', type=int, default=200, help='number of epochs for training [default: 200]')
+    parser.add_argument('--epoch', type=int, default=200, help='number of epochs for training [default: 2]')
     parser.add_argument('--log_dir', type=str, default='logs/',help='decay rate of learning rate')
     parser.add_argument('--pretrain', type=str, default=None,help='whether use pretrain model')
     parser.add_argument('--gpu', type=str, default='0', help='specify gpu device')
@@ -62,18 +62,27 @@ def main(args):
     logger.info('PARAMETER ...')
     logger.info(args)
     print('Load data...')
+
+    # train_data (16733, 4096, 9) train_label (16733, 4096)
+    # test_data (6852, 4096, 9) test_label (6852, 4096)
+    # 
     train_data, train_label, test_data, test_label = recognize_all_data(test_area = 5)
 
+    # get the training dataset   
     dataset = S3DISDataLoader(train_data,train_label)
+    # batch_size samples in one batch
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batchSize,
                                              shuffle=True, num_workers=int(args.workers))
     test_dataset = S3DISDataLoader(test_data,test_label)
+    # same as the dataloader.
     testdataloader = torch.utils.data.DataLoader(test_dataset, batch_size=8,
                                                  shuffle=True, num_workers=int(args.workers))
 
     num_classes = 13
     blue = lambda x: '\033[94m' + x + '\033[0m'
+    # 
     model = GACNet(num_classes,args.dropout,args.alpha)
+    print(model)
 
     if args.pretrain is not None:
         model.load_state_dict(torch.load(args.pretrain))
@@ -83,6 +92,7 @@ def main(args):
         print('Training from scratch')
         logger.info('Training from scratch')
     pretrain = args.pretrain
+    # init_epoch will get 0 
     init_epoch = int(pretrain[-14:-11]) if args.pretrain is not None else 0
 
     def adjust_learning_rate(optimizer, step):
@@ -115,13 +125,39 @@ def main(args):
     best_acc = 0
     best_meaniou = 0
     step = 0
-
+    # for epoch in range(0, args.epoch)
     for epoch in range(init_epoch,args.epoch):
         for i, data in tqdm(enumerate(dataloader, 0),total=len(dataloader),smoothing=0.9):
+            # Here, points is 24
             points, target = data
+            # torch.Size([24, 4096, 9])
+            print(points.shape)
+            # torch.float32
+            print(points.dtype)
+            # torch.Size([24, 4096])
+            print(target.shape)
+            # torch.uint8
+            print(target.dtype)
             points, target = Variable(points.float()), Variable(target.long())
+            print(points.dtype)
+            print(target.dtype)
             points = points.transpose(2, 1)
+            print(points.shape)
             points, target = points.cuda(), target.cuda()
+            # torch.Size([24, 9, 4096])
+            # torch.float32
+            # torch.Size([24, 4096])
+            # torch.int64
+            print(points.shape)
+            print(points.dtype)
+            print(target.shape)
+            print(target.dtype)
+            print(points[:,:3,:].shape)
+            print(points[:,:3,:].dtype)
+            print(points[:,:3,:])
+            print(points[:,3:,:].shape)
+            print(points[:,3:,:].dtype)
+            print(points[:,3:,:])            
             optimizer.zero_grad()
             model = model.train()
             pred = model(points[:,:3,:],points[:,3:,:])

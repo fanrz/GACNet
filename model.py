@@ -7,6 +7,7 @@ def timeit(tag, t):
     print("{}: {}s".format(tag, time() - t))
     return time()
 
+# get the distance between source node and destination nodes
 def square_distance(src, dst):
     """
     Calculate Euclid distance between each two points.
@@ -59,12 +60,23 @@ def farthest_point_sample(xyz, npoint):
     Return:
         centroids: sampled pointcloud index, [B, npoint]
     """
+    # some operation same as downsampling
+    print('farthest_point_sample begin')
     device = xyz.device
     B, N, C = xyz.shape
+    print(xyz.shape)
+    # centroids = torch.zeros(B, npoint) = torch.zeros(24, 1024) 
     centroids = torch.zeros(B, npoint, dtype=torch.long).to(device)
+    print(centroids.shape)
+    # distance = torch.ones(B, N) = torch.zeros(24, 4096)
+    # And why * 1e10 
     distance = torch.ones(B, N).to(device) * 1e10
+    print(distance.shape)
+    # farthest = torch.randint(0, N, B)
     farthest = torch.randint(0, N, (B,), dtype=torch.long).to(device)
+    print(farthest.shape)
     batch_indices = torch.arange(B, dtype=torch.long).to(device)
+    print(batch_indices.shape)
     for i in range(npoint):
         centroids[:, i] = farthest
         centroid = xyz[batch_indices, farthest, :].view(B, 1, 3)
@@ -97,7 +109,6 @@ def query_ball_point(radius, nsample, xyz, new_xyz):
     group_idx[mask] = group_first[mask]
     return group_idx
 
-
 def sample_and_group(npoint, radius, nsample, xyz, points, returnfps=False):
     """
     Input:
@@ -110,6 +121,15 @@ def sample_and_group(npoint, radius, nsample, xyz, points, returnfps=False):
         new_xyz: sampled points position data, [B, 1, C]
         new_points: sampled points data, [B, 1, N, C+D]
     """
+    # this function
+    print(xyz.shape)
+    print(points.shape)
+    # 1024
+    # 0.1
+    # 32 
+    print(npoint)
+    print(radius)
+    print(nsample)
     B, N, C = xyz.shape
     S = npoint
     fps_idx = farthest_point_sample(xyz, npoint) # [B, npoint, C]
@@ -198,17 +218,22 @@ class GraphAttentionConvLayer(nn.Module):
             last_channel = out_channel
         self.group_all = group_all
         self.GAT = GraphAttention(3+last_channel,last_channel,self.droupout,self.alpha)
-
+    
     def forward(self, xyz, points):
         """
         Input:
+            # Here, [B, C, N] is [24, 3, 4096], B is batch, C is channel, N is num of Nodes. 
             xyz: input points position data, [B, C, N]
+            # Here, [B, C, N] is [24, 6, 4096], B is batch, D is data of node? N is num of Nodes. 
             points: input points data, [B, D, N]
         Return:
             new_xyz: sampled points position data, [B, C, S]
             new_points_concat: sample points feature data, [B, D', S]
         """
+        # [B, C, N] -> [B, N, C]
+        # torch.Size([24, 4096, 3])
         xyz = xyz.permute(0, 2, 1)
+        print(xyz.shape)
         if points is not None:
             points = points.permute(0, 2, 1)
 
@@ -306,7 +331,17 @@ class GACNet(nn.Module):
         self.drop1 = nn.Dropout(droupout)
         self.conv2 = nn.Conv1d(128, num_classes, 1)
 
+    # pred = model(points[:,:3,:],points[:,3:,:])
+    # Here, xyz is points[:,:3,:]
+    # point is points[:,3:,:]
     def forward(self, xyz, point):
+        # Here, self.sa1 is GraphAttentionConvLayer
+        # points[:,:3,:],points[:,3:,:] is fed into GraphAttentionConvLayer function
+        print('in GACNet, you will get xyz and point')
+        print(xyz.shape)
+        print(point.shape)
+        print(xyz)
+        print(point)        
         l1_xyz, l1_points = self.sa1(xyz, point)
         l2_xyz, l2_points = self.sa2(l1_xyz, l1_points)
         l3_xyz, l3_points = self.sa3(l2_xyz, l2_points)

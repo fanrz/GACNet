@@ -34,16 +34,21 @@ def recognize_all_data(test_area = 5):
     test_area = 'Area_' + str(test_area)
     train_idxs = []
     test_idxs = []
+    # notice, area = 5 is a test set.
     for i, room_name in enumerate(room_filelist):
         if test_area in room_name:
             test_idxs.append(i)
         else:
             train_idxs.append(i)
-
+    # this is a train dataset
     train_data = data_batches[train_idxs, ...]
     train_label = label_batches[train_idxs]
+    # this is a test dataset
     test_data = data_batches[test_idxs, ...]
     test_label = label_batches[test_idxs]
+    # print two dataset's size
+    # train_data (16733, 4096, 9) train_label (16733, 4096)
+    # test_data (6852, 4096, 9) test_label (6852, 4096)
     print('train_data',train_data.shape,'train_label' ,train_label.shape)
     print('test_data',test_data.shape,'test_label', test_label.shape)
     return train_data,train_label,test_data,test_label
