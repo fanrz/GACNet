@@ -24,11 +24,21 @@ def square_distance(src, dst):
     Output:
         dist: per-point square distance, [B, N, M]
     """
+    print('in the square_distance function')
     B, N, _ = src.shape
+    print('src.shape is ',src.shape)
     _, M, _ = dst.shape
+    print('dst.shape is ',dst.shape)
+    # Here, src is [24, 64, 3]
+    # dst is [24, 16, 3]
+    # in this step, dist is torch.Size([24, 64, 16])
     dist = -2 * torch.matmul(src, dst.permute(0, 2, 1))
+    # in this step, dist is torch.Size([24, 64, 16])
     dist += torch.sum(src ** 2, -1).view(B, N, 1)
+    # in this step, dist is torch.Size([24, 64, 16])
     dist += torch.sum(dst ** 2, -1).view(B, 1, M)
+    # you will get dist: torch.Size([24, 16, 64])
+    print('dist.shape is ',dist.shape)
     return dist
 
 
@@ -300,6 +310,11 @@ class PointNetFeaturePropagation(nn.Module):
             self.mlp_bns.append(nn.BatchNorm1d(out_channel))
             last_channel = out_channel
 
+    # l3_points = self.fp4(l3_xyz, l4_xyz, l3_points, l4_points)
+    # 
+    # 
+    # 
+    # 
     def forward(self, xyz1, xyz2, points1, points2):
         """
         Input:
@@ -310,6 +325,10 @@ class PointNetFeaturePropagation(nn.Module):
         Return:
             new_points: upsampled points data, [B, D', N]
         """
+        print('xyz1.shape is ',xyz1.shape)
+        print('xyz2.shape is ',xyz2.shape)
+        # print('points1.shape is ',points1.size())
+        # print('points2.shape is ',points2.size())
         xyz1 = xyz1.permute(0, 2, 1)
         xyz2 = xyz2.permute(0, 2, 1)
 
@@ -321,6 +340,7 @@ class PointNetFeaturePropagation(nn.Module):
             interpolated_points = points2.repeat(1, N, 1)
         else:
             dists = square_distance(xyz1, xyz2)
+            print('in the point propapation progress, dists.shape is ',dists.shape)
             dists, idx = dists.sort(dim=-1)
             dists, idx = dists[:, :, :3], idx[:, :, :3]  # [B, N, 3]
             dists[dists < 1e-10] = 1e-10

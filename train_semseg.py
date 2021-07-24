@@ -131,17 +131,19 @@ def main(args):
             # Here, points is 24
             points, target = data
             # torch.Size([24, 4096, 9])
-            print(points.shape)
+            print('in the',i,' epoch, points.shape is',points.shape)
             # torch.float32
-            print(points.dtype)
+            print('in the',i,' epoch, points.dtype is',points.dtype)
             # torch.Size([24, 4096])
-            print(target.shape)
+            print('in the',i,' epoch, target.shape is',target.shape)
             # torch.uint8
+            print('in the',i,' epoch, target.dtype is',target.dtype)
             print(target.dtype)
             points, target = Variable(points.float()), Variable(target.long())
             print(points.dtype)
             print(target.dtype)
             points = points.transpose(2, 1)
+            print('in the',i,' epoch, points.shape is',points.shape)
             print(points.shape)
             points, target = points.cuda(), target.cuda()
             # torch.Size([24, 9, 4096])
@@ -152,6 +154,7 @@ def main(args):
             print(points.dtype)
             print(target.shape)
             print(target.dtype)
+            print('below is points')
             print(points[:,:3,:].shape)
             print(points[:,:3,:].dtype)
             print(points[:,:3,:])
