@@ -339,9 +339,15 @@ class PointNetFeaturePropagation(nn.Module):
         if S == 1:
             interpolated_points = points2.repeat(1, N, 1)
         else:
+            # dists's shape is [24, 64, 16]
             dists = square_distance(xyz1, xyz2)
             print('in the point propapation progress, dists.shape is ',dists.shape)
             dists, idx = dists.sort(dim=-1)
+            # 
+            print('after sort operation, dists.shape is ',dists.shape)
+            print('after sort operation, idx.shape is ',idx.shape)
+            print('dists is ',dists)
+            print('idx is ',idx)
             dists, idx = dists[:, :, :3], idx[:, :, :3]  # [B, N, 3]
             dists[dists < 1e-10] = 1e-10
             weight = 1.0 / dists  # [B, N, 3]
