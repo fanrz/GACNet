@@ -57,8 +57,8 @@ def recognize_all_data(test_area = 5):
     # test_data (6852, 4096, 9) test_label (6852, 4096)
     print('train_data shape is',train_data.shape,'train_label shape is',train_label.shape)
     print('test_data shape is',test_data.shape,'test_label shape is', test_label.shape)
-    print('train_data is',train_data,'train_label is',train_label)
-    print('test_data is',test_data,'test_label is', test_label)    
+    # print('train_data is',train_data,'train_label is',train_label)
+    # print('test_data is',test_data,'test_label is', test_label)    
     return train_data,train_label,test_data,test_label
 
 

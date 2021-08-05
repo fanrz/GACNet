@@ -94,8 +94,10 @@ def main(args):
         print('Training from scratch')
         logger.info('Training from scratch')
     pretrain = args.pretrain
+    print('pretrain is', pretrain)
     # init_epoch will get 0 
     init_epoch = int(pretrain[-14:-11]) if args.pretrain is not None else 0
+    print('init_epoch is', init_epoch)
 
     def adjust_learning_rate(optimizer, step):
         """Sets the learning rate to the initial LR decayed by 30 every 20000 steps"""
@@ -142,13 +144,8 @@ def main(args):
             print('in the',i,' epoch, target.shape is',target.shape)
             # torch.uint8
             print('in the',i,' epoch, target.dtype is',target.dtype)
-            print(target.dtype)
             points, target = Variable(points.float()), Variable(target.long())
-            print(points.dtype)
-            print(target.dtype)
             points = points.transpose(2, 1)
-            print('in the',i,' epoch, points.shape is',points.shape)
-            print(points.shape)
             points, target = points.cuda(), target.cuda()
             # torch.Size([24, 9, 4096])
             # torch.float32
@@ -161,12 +158,14 @@ def main(args):
             print('below is points')
             print('points[:,:3,:].shape is',points[:,:3,:].shape)
             print('points[:,:3,:].dtype is',points[:,:3,:].dtype)
-            print('points[:,:3,:] is',points[:,:3,:])
+            # print('points[:,:3,:] is',points[:,:3,:])
             print('points[:,3:,:].shape is',points[:,3:,:].shape)
             print('points[:,3:,:].dtype is',points[:,3:,:].dtype)
-            print('points[:,3:,:] is',points[:,3:,:])
+            # print('points[:,3:,:] is',points[:,3:,:])
             optimizer.zero_grad()
             model = model.train()
+            # notice, points[:,:3,:] are x y z info in the point --> torch.Size([24, 3, 4096]) torch.float32
+            # points[:,3:,:] are rgb and others --> torch.Size([24, 6, 4096]) torch.float32
             pred = model(points[:,:3,:],points[:,3:,:])
             pred = pred.contiguous().view(-1, num_classes)
             target = target.view(-1, 1)[:, 0]

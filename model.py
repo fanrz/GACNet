@@ -73,18 +73,18 @@ def farthest_point_sample(xyz, npoint):
     # some operation same as downsampling
     print('farthest_point_sample begin')
     device = xyz.device
+    # B, N, C are torch.Size([24, 4096, 3])
     B, N, C = xyz.shape
-    print('xyz.shape is')
-    print(xyz.shape)
     # centroids = torch.zeros(B, npoint) = torch.zeros(24, 1024) 
     centroids = torch.zeros(B, npoint, dtype=torch.long).to(device)
-    print('centroids.shape is')
-    print(centroids.shape)
+    # torch.Size([24, 1024])
+    print('centroids.shape is', centroids.shape)
     # distance = torch.ones(B, N) = torch.zeros(24, 4096)
     # And why * 1e10 ????
+    # distance torch.Size([24, 4096])
     distance = torch.ones(B, N).to(device) * 1e10
-    print('distance.shape is')
-    print(distance.shape)
+    print('distance.shape is', distance.shape)
+    print(distance)
     # farthest = torch.randint(0, N, B)
     farthest = torch.randint(0, N, (B,), dtype=torch.long).to(device)
     print('farthest.shape is')
@@ -134,7 +134,7 @@ def query_ball_point(radius, nsample, xyz, new_xyz):
 def sample_and_group(npoint, radius, nsample, xyz, points, returnfps=False):
     """
     Input:
-        npoint:
+        npoint: 1024
         radius:
         nsample:
         xyz: input points position data, [B, N, C]
@@ -147,12 +147,9 @@ def sample_and_group(npoint, radius, nsample, xyz, points, returnfps=False):
     print('in this function, sample_and_group')
     print('xyz.shape is',xyz.shape)
     print('points.shape is',points.shape)
-    # 1024
-    # 0.1
-    # 32 
-    print('npoint',npoint)
-    print('radius',radius)
-    print('nsample',nsample)
+    # npoint, radius, nsample: 1024, 0.1, 32
+    print('npoint, radius, nsample are ',npoint, radius, nsample)
+    # B, N, C is 24, 4096, 3
     B, N, C = xyz.shape
     S = npoint
     fps_idx = farthest_point_sample(xyz, npoint) # [B, npoint, C]
@@ -259,7 +256,7 @@ class GraphAttentionConvLayer(nn.Module):
         # [B, C, N] -> [B, N, C]
         # torch.Size([24, 4096, 3])
         xyz = xyz.permute(0, 2, 1)
-        print(xyz.shape)
+        print('xyz.shape is', xyz.shape)
         if points is not None:
             points = points.permute(0, 2, 1)
 
@@ -395,8 +392,8 @@ class GACNet(nn.Module):
         print('xyz.shape and point.shape are')
         print('xyz.shape is',xyz.shape)
         print('point.shape is ',point.shape)
-        print('xyz is',xyz)
-        print('point is',point)        
+        # print('xyz is',xyz)
+        # print('point is',point)        
         l1_xyz, l1_points = self.sa1(xyz, point)
         print('l1_xyz.shape is',l1_xyz.shape)
         print('l1_point.shape is ',l1_points.shape)
