@@ -36,6 +36,7 @@ def parse_args():
     parser.add_argument('--multi_gpu', type=str, default=None, help='whether use multi gpu training')
     parser.add_argument('--dropout', type=float, default=0, help='dropout [default: 0]')
     parser.add_argument('--alpha', type=float, default=0.2, help='alpha for leakyRelu [default: 0.2]')
+    print('train function parameters is',parser.parse_args())
     return parser.parse_args()
 
 def main(args):
@@ -73,6 +74,7 @@ def main(args):
     # batch_size samples in one batch
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batchSize,
                                              shuffle=True, num_workers=int(args.workers))
+    # evalutaion  
     test_dataset = S3DISDataLoader(test_data,test_label)
     # same as the dataloader.
     testdataloader = torch.utils.data.DataLoader(test_dataset, batch_size=8,
@@ -120,6 +122,7 @@ def main(args):
         model = torch.nn.DataParallel(model, device_ids=device_ids)
     else:
         model.cuda()
+    
 
     history = defaultdict(lambda: list())
     best_acc = 0
@@ -131,6 +134,7 @@ def main(args):
             # Here, points is 24
             points, target = data
             # torch.Size([24, 4096, 9])
+            print('this is',i,'th epoch')
             print('in the',i,' epoch, points.shape is',points.shape)
             # torch.float32
             print('in the',i,' epoch, points.dtype is',points.dtype)
@@ -150,23 +154,24 @@ def main(args):
             # torch.float32
             # torch.Size([24, 4096])
             # torch.int64
-            print(points.shape)
-            print(points.dtype)
-            print(target.shape)
-            print(target.dtype)
+            print('points.shape is',points.shape)
+            print('points.dtype is',points.dtype)
+            print('target.shape is',target.shape)
+            print('target.dtype is',target.dtype)
             print('below is points')
-            print(points[:,:3,:].shape)
-            print(points[:,:3,:].dtype)
-            print(points[:,:3,:])
-            print(points[:,3:,:].shape)
-            print(points[:,3:,:].dtype)
-            print(points[:,3:,:])            
+            print('points[:,:3,:].shape is',points[:,:3,:].shape)
+            print('points[:,:3,:].dtype is',points[:,:3,:].dtype)
+            print('points[:,:3,:] is',points[:,:3,:])
+            print('points[:,3:,:].shape is',points[:,3:,:].shape)
+            print('points[:,3:,:].dtype is',points[:,3:,:].dtype)
+            print('points[:,3:,:] is',points[:,3:,:])
             optimizer.zero_grad()
             model = model.train()
             pred = model(points[:,:3,:],points[:,3:,:])
             pred = pred.contiguous().view(-1, num_classes)
             target = target.view(-1, 1)[:, 0]
             loss = F.nll_loss(pred, target)
+            print('Epoch: {}\tBatch: {}\tLoss: {:.4f}'.format(epoch+1, i+1, loss))
             history['loss'].append(loss.cpu().data.numpy())
             loss.backward()
             optimizer.step()

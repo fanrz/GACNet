@@ -14,6 +14,9 @@ def load_h5(h5_filename):
     f = h5py.File(h5_filename)
     data = f['data'][:]
     label = f['label'][:]
+    # print('f shape',f.shape)
+    print('data shape',data.shape)
+    print('label shape',label.shape)
     return (data, label)
 
 def loadDataFile(filename):
@@ -21,6 +24,7 @@ def loadDataFile(filename):
 
 def recognize_all_data(test_area = 5):
     ALL_FILES = getDataFiles('./indoor3d_sem_seg_hdf5_data/all_files.txt')
+    print('ALL_FILES is', ALL_FILES)
     room_filelist = [line.rstrip() for line in open('./indoor3d_sem_seg_hdf5_data/room_filelist.txt')]
     data_batch_list = []
     label_batch_list = []
@@ -29,8 +33,10 @@ def recognize_all_data(test_area = 5):
         data_batch_list.append(data_batch)
         label_batch_list.append(label_batch)
     data_batches = np.concatenate(data_batch_list, 0)
+    print('data_batches shape is',data_batches.shape)
     label_batches = np.concatenate(label_batch_list, 0)
-
+    print('label_batches shape is',label_batches.shape)
+    
     test_area = 'Area_' + str(test_area)
     train_idxs = []
     test_idxs = []
@@ -49,8 +55,10 @@ def recognize_all_data(test_area = 5):
     # print two dataset's size
     # train_data (16733, 4096, 9) train_label (16733, 4096)
     # test_data (6852, 4096, 9) test_label (6852, 4096)
-    print('train_data',train_data.shape,'train_label' ,train_label.shape)
-    print('test_data',test_data.shape,'test_label', test_label.shape)
+    print('train_data shape is',train_data.shape,'train_label shape is',train_label.shape)
+    print('test_data shape is',test_data.shape,'test_label shape is', test_label.shape)
+    print('train_data is',train_data,'train_label is',train_label)
+    print('test_data is',test_data,'test_label is', test_label)    
     return train_data,train_label,test_data,test_label
 
 
